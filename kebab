@@ -16,7 +16,7 @@ rename_directories=false
 rename_files=false
 
 # Parse command-line flags
-while getopts "dfa" opt; do
+while getopts "dhfa" opt; do
   case $opt in
   d)
     rename_directories=true
@@ -28,12 +28,25 @@ while getopts "dfa" opt; do
     rename_directories=true
     rename_files=true
     ;;
+  h)
+    echo "Usage: $0 [-d] [-f] [-a]"
+    echo "  -d  Rename directories with snake_case names to kebab_case."
+    echo "  -f  Rename files with snake_case names to kebab_case."
+    echo "  -a  Rename both directories and files with snake_case names to kebab_case."
+    exit 0
+    ;;
   \?)
     echo "Invalid option: -$OPTARG" >&2
     exit 1
     ;;
   esac
 done
+
+# Check if no flags are specified
+if [ "$rename_directories" = false ] && [ "$rename_files" = false ]; then
+  echo "Please specify at least one of -d, -f, or -a. Use -h for help."
+  exit 1
+fi
 
 # Find and store directories and files with snake_case names
 if [ "$rename_directories" = true ]; then
@@ -57,11 +70,6 @@ fi
 
 if [ "$rename_files" = true ] && [ ${#files_to_rename[@]} -eq 0 ]; then
   echo "No files with snake_case names found."
-fi
-
-if [ "$rename_directories" = false ] && [ "$rename_files" = false ]; then
-  echo "Please specify at least one of -d, -f, or -a."
-  exit 1
 fi
 
 # Output directories and files that will be renamed

@@ -3,7 +3,8 @@
 # Author:       Ade Goodyer
 # Date:         20th Sept 2023
 # Description:  recursively change snake case directories and filenames to kebab case
-# Example:      an_example_file.md -> an-example-file.md
+# Example:      an_example_dir -> an-example-dir
+#               an_example_file.md -> an-example-file.md
 #
 
 # Function to convert snake_case to kebab-case

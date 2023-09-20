@@ -28,7 +28,15 @@ fi
 # Output files that will be renamed
 echo "Files that will be renamed:"
 for file in "${files_to_rename[@]}"; do
-  echo "$file"
+  # Get the directory and base name of the file
+  dir=$(dirname "$file")
+  base=$(basename "$file")
+
+  # Convert snake_case to kebab-case
+  kebab_case=$(snake_to_kebab "$base")
+
+  # Output the old and new file names
+  echo "$file -> $dir/$kebab_case"
 done
 
 # Ask for confirmation

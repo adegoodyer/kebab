@@ -13,8 +13,33 @@ snake_to_kebab() {
   echo "$1" | sed -E 's/([a-z0-9])_+([a-z0-9])/\1-\2/g; s/_/-/g'
 }
 
-# Find all files with snake_case names recursively
-find . -type f -name '*_*' | while read -r file; do
+# Find all files with snake_case names recursively and store them in an array
+files_to_rename=()
+while IFS= read -r -d '' file; do
+  files_to_rename+=("$file")
+done < <(find . -type f -name '*_*' -print0)
+
+# Check if there are files to rename
+if [ ${#files_to_rename[@]} -eq 0 ]; then
+  echo "No files with snake_case names found."
+  exit 0
+fi
+
+# Output files that will be renamed
+echo "Files that will be renamed:"
+for file in "${files_to_rename[@]}"; do
+  echo "$file"
+done
+
+# Ask for confirmation
+read -p "Do you want to proceed with renaming these files? (y/n): " confirm
+if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
+  echo "Operation canceled."
+  exit 0
+fi
+
+# Rename the files
+for file in "${files_to_rename[@]}"; do
   # Get the directory and base name of the file
   dir=$(dirname "$file")
   base=$(basename "$file")
@@ -26,3 +51,5 @@ find . -type f -name '*_*' | while read -r file; do
   mv "$file" "$dir/$kebab_case"
   echo "Renamed: $file -> $dir/$kebab_case"
 done
+
+echo "Renaming completed."

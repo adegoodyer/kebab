@@ -14,6 +14,7 @@ snake_to_kebab() {
 # Initialize flags
 rename_directories=false
 rename_files=false
+rename_both=false
 
 # Parse command-line flags
 while getopts "dhfa" opt; do
@@ -25,8 +26,7 @@ while getopts "dhfa" opt; do
     rename_files=true
     ;;
   a)
-    rename_directories=true
-    rename_files=true
+    rename_both=true
     ;;
   h)
     echo "Usage: $0 [-d] [-f] [-a]"
@@ -43,37 +43,24 @@ while getopts "dhfa" opt; do
 done
 
 # Check if no flags are specified
-if [ "$rename_directories" = false ] && [ "$rename_files" = false ]; then
+if [ "$rename_directories" = false ] && [ "$rename_files" = false ] && [ "$rename_both" = false ]; then
   echo "Please specify at least one of -d, -f, or -a. Use -h for help."
   exit 1
 fi
 
-# Find and store directories and files with snake_case names
-if [ "$rename_directories" = true ]; then
+# Function to find and rename directories
+rename_directories() {
   directories_to_rename=()
   while IFS= read -r -d '' dir; do
     directories_to_rename+=("$dir")
   done < <(find . -type d -name '*_*' -print0)
-fi
 
-if [ "$rename_files" = true ]; then
-  files_to_rename=()
-  while IFS= read -r -d '' file; do
-    files_to_rename+=("$file")
-  done < <(find . -type f -name '*_*' -print0)
-fi
+  if [ ${#directories_to_rename[@]} -eq 0 ]; then
+    echo "No directories with snake_case names found."
+    return
+  fi
 
-# Check if there are directories or files to rename
-if [ "$rename_directories" = true ] && [ ${#directories_to_rename[@]} -eq 0 ]; then
-  echo "No directories with snake_case names found."
-fi
-
-if [ "$rename_files" = true ] && [ ${#files_to_rename[@]} -eq 0 ]; then
-  echo "No files with snake_case names found."
-fi
-
-# Output directories and files that will be renamed
-if [ "$rename_directories" = true ]; then
+  # Output directories that will be renamed
   echo "Directories that will be renamed:"
   for dir in "${directories_to_rename[@]}"; do
     # Get the parent directory and name of the directory
@@ -86,32 +73,15 @@ if [ "$rename_directories" = true ]; then
     # Output the old and new directory names
     echo "$dir -> $parent_dir/$kebab_case"
   done
-fi
 
-if [ "$rename_files" = true ]; then
-  echo "Files that will be renamed:"
-  for file in "${files_to_rename[@]}"; do
-    # Get the directory and base name of the file
-    dir=$(dirname "$file")
-    base=$(basename "$file")
+  # Ask for confirmation
+  read -p "Do you want to proceed with renaming these directories? (y/n): " confirm
+  if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
+    echo "Operation canceled."
+    return
+  fi
 
-    # Convert snake_case to kebab-case
-    kebab_case=$(snake_to_kebab "$base")
-
-    # Output the old and new file names
-    echo "$file -> $dir/$kebab_case"
-  done
-fi
-
-# Ask for confirmation
-read -p "Do you want to proceed with renaming these items? (y/n): " confirm
-if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
-  echo "Operation canceled."
-  exit 0
-fi
-
-# Rename directories and files
-if [ "$rename_directories" = true ]; then
+  # Rename the directories
   for dir in "${directories_to_rename[@]}"; do
     # Get the parent directory and name of the directory
     parent_dir=$(dirname "$dir")
@@ -124,9 +94,42 @@ if [ "$rename_directories" = true ]; then
     mv "$dir" "$parent_dir/$kebab_case"
     echo "Renamed: $dir -> $parent_dir/$kebab_case"
   done
-fi
+}
 
-if [ "$rename_files" = true ]; then
+# Function to find and rename files
+rename_files() {
+  files_to_rename=()
+  while IFS= read -r -d '' file; do
+    files_to_rename+=("$file")
+  done < <(find . -type f -name '*_*' -print0)
+
+  if [ ${#files_to_rename[@]} -eq 0 ]; then
+    echo "No files with snake_case names found."
+    return
+  fi
+
+  # Output files that will be renamed
+  echo "Files that will be renamed:"
+  for file in "${files_to_rename[@]}"; do
+    # Get the directory and base name of the file
+    dir=$(dirname "$file")
+    base=$(basename "$file")
+
+    # Convert snake_case to kebab-case
+    kebab_case=$(snake_to_kebab "$base")
+
+    # Output the old and new file names
+    echo "$file -> $dir/$kebab_case"
+  done
+
+  # Ask for confirmation
+  read -p "Do you want to proceed with renaming these files? (y/n): " confirm
+  if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
+    echo "Operation canceled."
+    return
+  fi
+
+  # Rename the files
   for file in "${files_to_rename[@]}"; do
     # Get the directory and base name of the file
     dir=$(dirname "$file")
@@ -139,6 +142,21 @@ if [ "$rename_files" = true ]; then
     mv "$file" "$dir/$kebab_case"
     echo "Renamed: $file -> $dir/$kebab_case"
   done
+}
+
+# If -a flag is specified, rename directories first and rescan before renaming files
+if [ "$rename_both" = true ]; then
+  rename_directories
+  # Rescan the directory for files
+  rename_files
+else
+  if [ "$rename_directories" = true ]; then
+    rename_directories
+  fi
+
+  if [ "$rename_files" = true ]; then
+    rename_files
+  fi
 fi
 
 echo "Renaming completed."

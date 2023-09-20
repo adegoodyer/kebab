@@ -1,0 +1,136 @@
+#!/bin/bash
+#
+# Author:       Ade Goodyer
+# Date:         20th Sept 2023
+# Description:  recursively change snake case directories and filenames to kebab case
+# Example:      an_example_file.md -> an-example-file.md
+#
+
+# Function to convert snake_case to kebab-case
+snake_to_kebab() {
+  echo "$1" | sed -E 's/([a-z0-9])_+([a-z0-9])/\1-\2/g; s/_/-/g'
+}
+
+# Initialize flags
+rename_directories=false
+rename_files=false
+
+# Parse command-line flags
+while getopts "dfa" opt; do
+  case $opt in
+  d)
+    rename_directories=true
+    ;;
+  f)
+    rename_files=true
+    ;;
+  a)
+    rename_directories=true
+    rename_files=true
+    ;;
+  \?)
+    echo "Invalid option: -$OPTARG" >&2
+    exit 1
+    ;;
+  esac
+done
+
+# Find and store directories and files with snake_case names
+if [ "$rename_directories" = true ]; then
+  directories_to_rename=()
+  while IFS= read -r -d '' dir; do
+    directories_to_rename+=("$dir")
+  done < <(find . -type d -name '*_*' -print0)
+fi
+
+if [ "$rename_files" = true ]; then
+  files_to_rename=()
+  while IFS= read -r -d '' file; do
+    files_to_rename+=("$file")
+  done < <(find . -type f -name '*_*' -print0)
+fi
+
+# Check if there are directories or files to rename
+if [ "$rename_directories" = true ] && [ ${#directories_to_rename[@]} -eq 0 ]; then
+  echo "No directories with snake_case names found."
+fi
+
+if [ "$rename_files" = true ] && [ ${#files_to_rename[@]} -eq 0 ]; then
+  echo "No files with snake_case names found."
+fi
+
+if [ "$rename_directories" = false ] && [ "$rename_files" = false ]; then
+  echo "Please specify at least one of -d, -f, or -a."
+  exit 1
+fi
+
+# Output directories and files that will be renamed
+if [ "$rename_directories" = true ]; then
+  echo "Directories that will be renamed:"
+  for dir in "${directories_to_rename[@]}"; do
+    # Get the parent directory and name of the directory
+    parent_dir=$(dirname "$dir")
+    base_dir=$(basename "$dir")
+
+    # Convert snake_case to kebab-case
+    kebab_case=$(snake_to_kebab "$base_dir")
+
+    # Output the old and new directory names
+    echo "$dir -> $parent_dir/$kebab_case"
+  done
+fi
+
+if [ "$rename_files" = true ]; then
+  echo "Files that will be renamed:"
+  for file in "${files_to_rename[@]}"; do
+    # Get the directory and base name of the file
+    dir=$(dirname "$file")
+    base=$(basename "$file")
+
+    # Convert snake_case to kebab-case
+    kebab_case=$(snake_to_kebab "$base")
+
+    # Output the old and new file names
+    echo "$file -> $dir/$kebab_case"
+  done
+fi
+
+# Ask for confirmation
+read -p "Do you want to proceed with renaming these items? (y/n): " confirm
+if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
+  echo "Operation canceled."
+  exit 0
+fi
+
+# Rename directories and files
+if [ "$rename_directories" = true ]; then
+  for dir in "${directories_to_rename[@]}"; do
+    # Get the parent directory and name of the directory
+    parent_dir=$(dirname "$dir")
+    base_dir=$(basename "$dir")
+
+    # Convert snake_case to kebab-case
+    kebab_case=$(snake_to_kebab "$base_dir")
+
+    # Rename the directory with kebab-case
+    mv "$dir" "$parent_dir/$kebab_case"
+    echo "Renamed: $dir -> $parent_dir/$kebab_case"
+  done
+fi
+
+if [ "$rename_files" = true ]; then
+  for file in "${files_to_rename[@]}"; do
+    # Get the directory and base name of the file
+    dir=$(dirname "$file")
+    base=$(basename "$file")
+
+    # Convert snake_case to kebab-case
+    kebab_case=$(snake_to_kebab "$base")
+
+    # Rename the file with kebab-case
+    mv "$file" "$dir/$kebab_case"
+    echo "Renamed: $file -> $dir/$kebab_case"
+  done
+fi
+
+echo "Renaming completed."

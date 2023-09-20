@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# Author:       Ade Goodyer
+# Date:         20th Sept 2023
+# Description:  recursively change all snake case filenames to kebab case
+# Example:      an_example_file.md -> an-example-file.md
+#
+
+#!/bin/bash
+
+# Function to convert snake_case to kebab-case
+snake_to_kebab() {
+  echo "$1" | sed -E 's/([a-z0-9])_+([a-z0-9])/\1-\2/g; s/_/-/g'
+}
+
+# Find all files with snake_case names recursively
+find . -type f -name '*_*' | while read -r file; do
+  # Get the directory and base name of the file
+  dir=$(dirname "$file")
+  base=$(basename "$file")
+
+  # Convert snake_case to kebab-case
+  kebab_case=$(snake_to_kebab "$base")
+
+  # Rename the file with kebab-case
+  mv "$file" "$dir/$kebab_case"
+  echo "Renamed: $file -> $dir/$kebab_case"
+done

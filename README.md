@@ -1,7 +1,8 @@
 # kebab
 
 ## Overview
-Recursively change snake case directories and/or filenames to kebab case.
+- recursively change snake case directories and/or filenames to kebab case
+- will preserve first character if it's an underscore (often used to ensure file/dir is top of dir tree)
 
 ```bash
 Version 1.0.0
@@ -13,7 +14,7 @@ Options:
   --files      Rename files with snake_case names to kebab_case.
   --all        Rename both directories and files with snake_case names to kebab_case.
   --empty      Find empty directories.
-  --del-empty  Find and delete empty directories (use with --empty).
+  --delete     Find and delete empty directories (use with --empty).
   --help       Display this help message.
   --version    Display version (1.0.0).
 
@@ -24,7 +25,7 @@ Options:
 ```
 
 ## Install
-Download/clone and add script to PATH as you normally would for you shell or OS distribution.
+Download/clone and add cloned repo location to PATH as you normally would for you shell or OS distribution.
 
 ```bash
 # edit file

@@ -58,7 +58,7 @@ Options:
   --files      Rename files with snake_case names to kebab_case.
   --all        Rename both directories and files with snake_case names to kebab_case.
   --empty      Find empty directories.
-  --del        Find and delete empty directories (use with --empty).
+  --delete        Find and delete empty directories (use with --empty).
   --help       Display this help message.
   --version    Display version ($VERSION).
 EOF
@@ -80,7 +80,7 @@ while [[ $# -gt 0 ]]; do
   --empty)
     find_empty_dirs=true
     ;;
-  --del)
+  --delete)
     delete_empty_dirs=true
     ;;
   --help)
@@ -218,7 +218,7 @@ if [ "$find_empty_dirs" = true ]; then
   find_empty_directories
 fi
 
-# If --del option is specified with --empty, delete empty directories
+# If --delete option is specified with --empty, delete empty directories
 if [ "$delete_empty_dirs" = true ] && [ "$find_empty_dirs" = true ]; then
   echo
   read -p "Do you want to proceed with deleting these empty directories? (y/n): " confirm

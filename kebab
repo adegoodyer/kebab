@@ -16,36 +16,47 @@ snake_to_kebab() {
 rename_directories=false
 rename_files=false
 rename_both=false
+find_empty_dirs=false
+delete_empty_dirs=false
 
 # Parse command-line flags
-while getopts "dhfa" opt; do
-  case $opt in
-  d)
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  --dir)
     rename_directories=true
     ;;
-  f)
+  --files)
     rename_files=true
     ;;
-  a)
+  --all)
     rename_both=true
     ;;
-  h)
-    echo "Usage: $0 [-d] [-f] [-a]"
-    echo "  -d  Rename directories with snake_case names to kebab_case."
-    echo "  -f  Rename files with snake_case names to kebab_case."
-    echo "  -a  Rename both directories and files with snake_case names to kebab_case."
+  --empty)
+    find_empty_dirs=true
+    ;;
+  --del-empty)
+    delete_empty_dirs=true
+    ;;
+  --help)
+    echo "Usage: $0 [--dir] [--files] [--all] [--empty] [--del-empty] [--help]"
+    echo "  --dir: Rename directories with snake_case names to kebab_case."
+    echo "  --files: Rename files with snake_case names to kebab_case."
+    echo "  --all: Rename both directories and files with snake_case names to kebab_case."
+    echo "  --empty: Find empty directories."
+    echo "  --del-empty: Find and delete empty directories (use with --empty)."
     exit 0
     ;;
-  \?)
-    echo "Invalid option: -$OPTARG" >&2
+  *)
+    echo "Invalid option: $1" >&2
     exit 1
     ;;
   esac
+  shift
 done
 
 # Check if no flags are specified
-if [ "$rename_directories" = false ] && [ "$rename_files" = false ] && [ "$rename_both" = false ]; then
-  echo "Please specify at least one of -d, -f, or -a. Use -h for help."
+if [ "$rename_directories" = false ] && [ "$rename_files" = false ] && [ "$rename_both" = false ] && [ "$find_empty_dirs" = false ] && [ "$delete_empty_dirs" = false ]; then
+  echo "Please specify at least one of the options. Use --help for help."
   exit 1
 fi
 

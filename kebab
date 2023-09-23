@@ -7,6 +7,9 @@
 #               an_example_file.md -> an-example-file.md
 #
 
+# Set the script version
+VERSION="1.0.0"
+
 # Function to convert snake_case to kebab-case
 snake_to_kebab() {
   echo "$1" | sed -E 's/([a-z0-9])_+([a-z0-9])/\1-\2/g; s/_/-/g'
@@ -22,7 +25,9 @@ delete_empty_dirs=false
 # Function to display usage message
 usage() {
   cat <<EOF
-Usage: $0 [--dir] [--files] [--all] [--empty] [--del-empty] [--help]
+Version $VERSION
+Usage: $0 [option] ...
+       $0 [option] script-file ...
 
 Options:
   --dir        Rename directories with snake_case names to kebab_case.
@@ -31,6 +36,7 @@ Options:
   --empty      Find empty directories.
   --del-empty  Find and delete empty directories (use with --empty).
   --help       Display this help message.
+  --version    Display version ($VERSION).
 EOF
   exit 0
 }
@@ -55,6 +61,10 @@ while [[ $# -gt 0 ]]; do
     ;;
   --help)
     usage
+    ;;
+  --version)
+    echo "Version: $VERSION"
+    exit 0
     ;;
   *)
     echo "Invalid option: $1" >&2

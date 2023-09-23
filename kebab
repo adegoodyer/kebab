@@ -26,8 +26,8 @@ delete_empty_dirs=false
 usage() {
   cat <<EOF
 Version $VERSION
-Usage: $0 [option] ...
-       $0 [option] script-file ...
+
+Usage: kebab [option] ...
 
 Options:
   --dir        Rename directories with snake_case names to kebab_case.

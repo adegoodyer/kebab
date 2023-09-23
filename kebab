@@ -2,7 +2,7 @@
 #
 # Author:       Ade Goodyer
 # Date:         20th Sept 2023
-# Description:  recursively change snake case directories and filenames to kebab case
+# Description:  Recursively change snake_case directories and filenames to kebab_case
 # Example:      an_example_dir -> an-example-dir
 #               an_example_file.md -> an-example-file.md
 #
@@ -10,9 +10,33 @@
 # Set the script version
 VERSION="1.0.0"
 
+# Function to convert characters to lowercase
+to_lowercase() {
+  echo "$1" | tr '[:upper:]' '[:lower:]'
+}
+
 # Function to convert snake_case to kebab-case
 snake_to_kebab() {
-  echo "$1" | sed -E 's/([a-z0-9])_+([a-z0-9])/\1-\2/g; s/_/-/g'
+  local input="$1"
+  local kebab_case=""
+  local first_char=true
+
+  for ((i = 0; i < ${#input}; i++)); do
+    char="${input:i:1}"
+    if [[ "$char" == "_" && "$first_char" = true ]]; then
+      kebab_case+="$char"
+    else
+      if [[ "$char" == "_" ]]; then
+        kebab_case+="-"
+        first_char=true
+      else
+        kebab_case+="$(to_lowercase "$char")"
+        first_char=false
+      fi
+    fi
+  done
+
+  echo "$kebab_case"
 }
 
 # Initialize flags
@@ -34,7 +58,7 @@ Options:
   --files      Rename files with snake_case names to kebab_case.
   --all        Rename both directories and files with snake_case names to kebab_case.
   --empty      Find empty directories.
-  --del-empty  Find and delete empty directories (use with --empty).
+  --del        Find and delete empty directories (use with --empty).
   --help       Display this help message.
   --version    Display version ($VERSION).
 EOF
@@ -56,7 +80,7 @@ while [[ $# -gt 0 ]]; do
   --empty)
     find_empty_dirs=true
     ;;
-  --del-empty)
+  --del)
     delete_empty_dirs=true
     ;;
   --help)
@@ -100,13 +124,14 @@ rename_directories() {
     base_dir=$(basename "$dir")
 
     # Convert snake_case to kebab-case
-    kebab_case=$(snake_to_kebab "$base_dir")
+    kebab_case="$(snake_to_kebab "$base_dir")"
 
     # Output the old and new directory names
     echo "$dir -> $parent_dir/$kebab_case"
   done
 
   # Ask for confirmation
+  echo
   read -p "Do you want to proceed with renaming these directories? (y/n): " confirm
   if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
     echo "Operation canceled."
@@ -120,7 +145,7 @@ rename_directories() {
     base_dir=$(basename "$dir")
 
     # Convert snake_case to kebab-case
-    kebab_case=$(snake_to_kebab "$base_dir")
+    kebab_case="$(snake_to_kebab "$base_dir")"
 
     # Rename the directory with kebab-case
     mv "$dir" "$parent_dir/$kebab_case"
@@ -148,13 +173,14 @@ rename_files() {
     base=$(basename "$file")
 
     # Convert snake_case to kebab-case
-    kebab_case=$(snake_to_kebab "$base")
+    kebab_case="$(snake_to_kebab "$base")"
 
     # Output the old and new file names
     echo "$file -> $dir/$kebab_case"
   done
 
   # Ask for confirmation
+  echo
   read -p "Do you want to proceed with renaming these files? (y/n): " confirm
   if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
     echo "Operation canceled."
@@ -168,7 +194,7 @@ rename_files() {
     base=$(basename "$file")
 
     # Convert snake_case to kebab-case
-    kebab_case=$(snake_to_kebab "$base")
+    kebab_case="$(snake_to_kebab "$base")"
 
     # Rename the file with kebab-case
     mv "$file" "$dir/$kebab_case"
@@ -192,20 +218,24 @@ if [ "$find_empty_dirs" = true ]; then
   find_empty_directories
 fi
 
-# If --del-empty option is specified with --empty, delete empty directories
+# If --del option is specified with --empty, delete empty directories
 if [ "$delete_empty_dirs" = true ] && [ "$find_empty_dirs" = true ]; then
+  echo
   read -p "Do you want to proceed with deleting these empty directories? (y/n): " confirm
   if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
     delete_empty_directories
     echo "Empty directories deleted."
+    exit 0
   else
     echo "Operation canceled."
+    exit 0
   fi
 fi
 
 # If --all option is specified, rename directories first and rescan before renaming files
 if [ "$rename_both" = true ]; then
   rename_directories
+  echo
   # Rescan the directory for files
   rename_files
 else
@@ -217,5 +247,3 @@ else
     rename_files
   fi
 fi
-
-echo "Renaming completed."

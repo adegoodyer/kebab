@@ -19,6 +19,22 @@ rename_both=false
 find_empty_dirs=false
 delete_empty_dirs=false
 
+# Function to display usage message
+usage() {
+  cat <<EOF
+Usage: $0 [--dir] [--files] [--all] [--empty] [--del-empty] [--help]
+
+Options:
+  --dir        Rename directories with snake_case names to kebab_case.
+  --files      Rename files with snake_case names to kebab_case.
+  --all        Rename both directories and files with snake_case names to kebab_case.
+  --empty      Find empty directories.
+  --del-empty  Find and delete empty directories (use with --empty).
+  --help       Display this help message.
+EOF
+  exit 0
+}
+
 # Parse command-line flags
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -38,13 +54,7 @@ while [[ $# -gt 0 ]]; do
     delete_empty_dirs=true
     ;;
   --help)
-    echo "Usage: $0 [--dir] [--files] [--all] [--empty] [--del-empty] [--help]"
-    echo "  --dir: Rename directories with snake_case names to kebab_case."
-    echo "  --files: Rename files with snake_case names to kebab_case."
-    echo "  --all: Rename both directories and files with snake_case names to kebab_case."
-    echo "  --empty: Find empty directories."
-    echo "  --del-empty: Find and delete empty directories (use with --empty)."
-    exit 0
+    usage
     ;;
   *)
     echo "Invalid option: $1" >&2

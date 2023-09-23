@@ -145,7 +145,34 @@ rename_files() {
   done
 }
 
-# If -a flag is specified, rename directories first and rescan before renaming files
+# Function to find empty directories
+find_empty_directories() {
+  find . -type d -empty
+}
+
+# Function to delete empty directories
+delete_empty_directories() {
+  find . -type d -empty -delete
+}
+
+# If --empty option is specified, find empty directories
+if [ "$find_empty_dirs" = true ]; then
+  echo "Empty directories found:"
+  find_empty_directories
+fi
+
+# If --del-empty option is specified with --empty, delete empty directories
+if [ "$delete_empty_dirs" = true ] && [ "$find_empty_dirs" = true ]; then
+  read -p "Do you want to proceed with deleting these empty directories? (y/n): " confirm
+  if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
+    delete_empty_directories
+    echo "Empty directories deleted."
+  else
+    echo "Operation canceled."
+  fi
+fi
+
+# If --all option is specified, rename directories first and rescan before renaming files
 if [ "$rename_both" = true ]; then
   rename_directories
   # Rescan the directory for files

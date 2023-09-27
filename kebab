@@ -58,7 +58,7 @@ Options:
   --files      Rename files with snake_case names to kebab_case.
   --all        Rename both directories and files with snake_case names to kebab_case.
   --empty      Find empty directories.
-  --delete        Find and delete empty directories (use with --empty).
+  --delete     Find and delete empty directories (use with --empty).
   --help       Display this help message.
   --version    Display version ($VERSION).
 EOF
@@ -100,8 +100,7 @@ done
 
 # Check if no flags are specified
 if [ "$rename_directories" = false ] && [ "$rename_files" = false ] && [ "$rename_both" = false ] && [ "$find_empty_dirs" = false ] && [ "$delete_empty_dirs" = false ]; then
-  echo "Please specify at least one of the options. Use --help for help."
-  exit 1
+  usage
 fi
 
 # Function to find and rename directories
